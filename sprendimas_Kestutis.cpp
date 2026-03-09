@@ -1,142 +1,127 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct mokinys
-{
-    string vardas; //vardas pavardë
-    string kodas; //mokinio kodas
+struct Mokinys {
+    string vardas;
+    string kodas;
     string klase;
+    vector<string> dalykai;
 };
 
-struct pasirinkimai
-{
-    string kodas;           //mokinio kodas
-    vector <string> dalykai; //pasirinkti dalykai
-};
-
-struct dalykai
-{
-    string pav;
+struct DalykasInfo {
+    string kodas;
     int kiekis;
 };
-//-------Rikiavimo tvarka
-bool tvarka (dalykai a, dalykai b)
-{
-    return a.kiekis > b.kiekis || (a.kiekis == b.kiekis && a.pav < b.pav);
+
+bool RikiuotiDalykus(const DalykasInfo& a, const DalykasInfo& b) {
+    return a.kiekis > b.kiekis || (a.kiekis == b.kiekis && a.kodas < b.kodas);
 }
-//------FUNKCIJA gražinanti skaitmenų sumą
-int SkaitmenuSuma(string kodas)
-{
+
+int SkaitmenuSuma(const string& kodas) {
     int suma = 0;
     for (int i = 6; i < 10; i++) {
         suma += kodas[i] - '0';
     }
     return suma;
 }
-//------FUNKCIJA patikrinanti ar mokinio kodo skaitmenų suma lygi 15
-bool ArSkaitmenuSuma(mokinys M)
-{
-    return (SkaitmenuSuma(M.kodas) == 15);
-}
-//------Skaièiavimas kiek neteisingų mokinių kodų
-int NeteisinguKiekis(mokinys M[], int n)
-{
-    int kiek = 0;
-    for (int i=0; i<n; i++)
-    {
-        if (!ArSkaitmenuSuma(M[i])) //nelygu 15
-            kiek++;
+
+bool TeisingasPasirinkimas(const vector<string>& dalykai) {
+    bool yraMAT = false, yraBL = false;
+
+    for (const string& d : dalykai) {
+        if (d == "MAT") yraMAT = true;
+        if (d == "BL") yraBL = true;
     }
-    return kiek;
-}
-//-------Funkcija randanti ar tesingai pasirinko mokinys
-bool TeisingasPasirinkimas(pasirinkimai P)
-{
-    bool mat = 0, bl = 0;
-    for (int i=0; i<P.dalykai.size();i++)
-    {
-        if (P.dalykai[i]=="MAT")  mat = 1;
-        if (P.dalykai[i]=="BL") bl = 1;
-    }
-    return (mat && bl && P.dalykai.size()>=3 && P.dalykai.size()<=7);
+
+    return yraMAT && yraBL && dalykai.size() >= 3 && dalykai.size() <= 7;
 }
 
-int main()
-{
-    mokinys M[500]; //mokiniø duomenø masyvas
-    pasirinkimai P[500]; //mokinio pasirinkimai
-    int n, a;          //mokiniu kiekis ir uþpildytø anketø kiekis
-    int k12a = 0, k12b = 0, k12c = 0; //klasių kiekis
-    map <string, int> D; //dalykai
-    vector <dalykai> Da;
-
-
+int main() {
     ifstream fin("Duomenys.txt");
     ofstream fout("Rezultatai.txt");
-    ///-------------------------SKAITYMAS--------------------------
 
+    int n;
     fin >> n >> ws;
-    //---------Skaitymas mokiniu duomenu--------
-    for (int i=0; i<n; i++)
-    {
-        getline(fin, M[i].vardas,';');
-        getline(fin, M[i].kodas,';');
-        fin >> M[i].klase >> ws;
-        if (M[i].klase == "12a") k12a++; //klasių skaičiavimas
-        else if (M[i].klase == "12b") k12b++;
-        else if (M[i].klase == "12c") k12c++;
+
+    vector<Mokinys> mokiniai(n);
+    map<string, int> indeksas;
+
+    int k12a = 0, k12b = 0, k12c = 0;
+
+    // Nuskaitomi mokiniai
+    for (int i = 0; i < n; i++) {
+        getline(fin, mokiniai[i].vardas, ';');
+        getline(fin, mokiniai[i].kodas, ';');
+        fin >> mokiniai[i].klase >> ws;
+
+        indeksas[mokiniai[i].kodas] = i;
+
+        if (mokiniai[i].klase == "12a") k12a++;
+        else if (mokiniai[i].klase == "12b") k12b++;
+        else if (mokiniai[i].klase == "12c") k12c++;
     }
-    //-------Skaitymas pasirinkimu--------------
+
+    map<string, int> dalykuKiekiai;
     string eilute;
-    string kodas, dalykai;
-    a = 0; //neturim uþpildytø anketø
-    while (getline(fin, eilute))
-    {
+
+    // Nuskaitomi pasirinkimai
+    while (getline(fin, eilute)) {
         if (eilute.empty()) continue;
 
         stringstream ss(eilute);
-        getline(ss, kodas,';');
-        P[a].kodas = kodas;
-        while(getline(ss, dalykai,';'))
-        {
-            while (!dalykai.empty() && (dalykai.back() == '\n' || dalykai.back() == '\r')) //pašalinama eilutės pabaiga Windows/Linux
-                dalykai.pop_back();
-            P[a].dalykai.push_back(dalykai);
-            D[dalykai]++; //skaičiuojame kiek pasirinko dalykų
-        }
-        a++; //anketø skaièius
-    }
-    ///---------------SKAIÈIAVIMAI 12a, 12b, 12c klasiø
-    fout << k12a <<" "<< k12b <<" "<< k12c << endl;
-    fout << NeteisinguKiekis(M, n) << endl;
-    //----------Spausdinimas neteisingu kodu--------------------
-    for (int i=0; i<n; i++)
-    {
-       if (!ArSkaitmenuSuma(M[i])) //nelygu 15
-            fout << M[i].vardas << " " <<M[i].kodas <<" "<< SkaitmenuSuma(M[i].kodas)<< endl;
-    }
-    //----------Spausdinimas neteisingu pasirinkimu------------
-    for (int i=0; i<n; i++) //eina per sarasa
-    {
-        //---------Eina per pasirinkimus-------
-        for (int j=0; j<a; j++)
-        {
-           if ( M[i].kodas == P[j].kodas && !TeisingasPasirinkimas(P[j])) //jei sutampa kodai ir neteisingas pasirinkimas
-                fout << M[i].vardas << endl;
+        string mokinioKodas, dalykas;
+
+        getline(ss, mokinioKodas, ';');
+
+        if (!indeksas.count(mokinioKodas)) continue;
+
+        int idx = indeksas[mokinioKodas];
+
+        while (getline(ss, dalykas, ';')) {
+            while (!dalykas.empty() && (dalykas.back() == '\r' || dalykas.back() == '\n')) {
+                dalykas.pop_back();
+            }
+            mokiniai[idx].dalykai.push_back(dalykas);
+            dalykuKiekiai[dalykas]++;
         }
     }
-    //-------Dalyku pasirinkimu kiekis
-    for (auto i: D)
-    {
-        Da.push_back({i.first, i.second}); //susidedam iš map į paprastą struktūrą
+
+    // 4. Klasių kiekiai
+    fout << k12a << " " << k12b << " " << k12c << "\n";
+
+    // 5. Neteisingi ID
+    int bloguID = 0;
+    for (const auto& m : mokiniai) {
+        if (SkaitmenuSuma(m.kodas) != 15) bloguID++;
     }
-    sort(Da.begin(), Da.end(), tvarka);
 
-    for (auto i: Da)
-        fout << i.pav <<" "<<i.kiekis << endl;
+    fout << bloguID << "\n";
 
-    fin.close();
-    fout.close();
+    for (const auto& m : mokiniai) {
+        int suma = SkaitmenuSuma(m.kodas);
+        if (suma != 15) {
+            fout << m.vardas << " " << m.kodas << " " << suma << "\n";
+        }
+    }
+
+    // 6. Neteisingi pasirinkimai
+    for (const auto& m : mokiniai) {
+        if (!m.dalykai.empty() && !TeisingasPasirinkimas(m.dalykai)) {
+            fout << m.vardas << "\n";
+        }
+    }
+
+    // 7. Dalykų sąrašas
+    vector<DalykasInfo> sarasas;
+    for (auto x : dalykuKiekiai) {
+        sarasas.push_back({x.first, x.second});
+    }
+
+    sort(sarasas.begin(), sarasas.end(), RikiuotiDalykus);
+
+    for (const auto& x : sarasas) {
+        fout << x.kodas << " " << x.kiekis << "\n";
+    }
+
     return 0;
 }
-
