@@ -24,7 +24,7 @@ bool tvarka (dalykai a, dalykai b)
 {
     return a.kiekis > b.kiekis || (a.kiekis == b.kiekis && a.pav < b.pav);
 }
-//------FUNKCIJA gràþinanti skaitmenu sumà
+//------FUNKCIJA gražinanti skaitmenų sumą
 int SkaitmenuSuma(string kodas)
 {
     int suma = 0;
@@ -33,12 +33,12 @@ int SkaitmenuSuma(string kodas)
     }
     return suma;
 }
-//------FUNKCIJA patikrinanti ar mokinio kodo skaitmenø suma lygi 15
+//------FUNKCIJA patikrinanti ar mokinio kodo skaitmenų suma lygi 15
 bool ArSkaitmenuSuma(mokinys M)
 {
     return (SkaitmenuSuma(M.kodas) == 15);
 }
-//------Skaièiavimas kiek neteisingø mokiniø kodø
+//------Skaièiavimas kiek neteisingų mokinių kodų
 int NeteisinguKiekis(mokinys M[], int n)
 {
     int kiek = 0;
@@ -139,3 +139,4 @@ int main()
     fout.close();
     return 0;
 }
+
